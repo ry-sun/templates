@@ -7,7 +7,7 @@ Personal project templates powered by
 
 | Template | Description |
 | --- | --- |
-| `rust` | Rust binary or library with shared repository tooling |
+| `rust` | Rust binary, library, or Cargo workspace with shared repository tooling |
 
 ## Usage
 
@@ -36,7 +36,7 @@ Run the template smoke tests:
 ./scripts/test-rust-template.sh
 ```
 
-The tests generate binary and library variants in temporary directories, check
-their conditional files and Git state, record GitHub CLI calls with a local
-fake, and run Rust formatting, linting, and test commands. They never create a
-real GitHub repository.
+The tests generate single-crate and workspace binary and library variants in
+temporary directories, check their conditional files and Git state, record
+GitHub CLI calls with a local fake, and run Rust formatting, linting, and test
+commands. They never create a real GitHub repository.

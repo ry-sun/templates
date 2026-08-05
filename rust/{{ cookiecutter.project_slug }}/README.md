@@ -2,6 +2,17 @@
 
 {{ cookiecutter.description }}
 
+{% if cookiecutter.use_workspace %}
+## Workspace
+
+The starter crate is in `crates/{{ cookiecutter.project_slug }}`. Add another
+direct workspace member with:
+
+```sh
+cargo new --lib crates/another-crate
+```
+
+{% endif %}
 ## Development
 
 ```sh
