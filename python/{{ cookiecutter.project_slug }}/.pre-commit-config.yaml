@@ -48,13 +48,13 @@ repos:
       - id: cspell
 {% endif %}
 
-  - repo: local
+  - repo: https://github.com/DetachHead/basedpyright-prek-mirror
+    rev: 1.39.9
     hooks:
       - id: basedpyright
-        name: basedpyright
-        entry: uv run --locked basedpyright
-        language: system
-        pass_filenames: false
+
+  - repo: local
+    hooks:
       - id: pytest
         name: pytest
         entry: uv run --locked pytest

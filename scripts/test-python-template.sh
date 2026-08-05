@@ -198,8 +198,13 @@ for project in "$cli_project" "$lib_project"; do
 done
 
 uvx pre-commit validate-config "$cli_project/.pre-commit-config.yaml"
+(
+    cd "$cli_project"
+    uv run pre-commit run basedpyright --all-files
+)
 
 uv run --with pyyaml python - \
+    "$cli_project/.pre-commit-config.yaml" \
     "$cli_project/.github/workflows/check.yml" \
     "$cli_project/.github/dependabot.yml" <<'PY'
 from __future__ import annotations
@@ -209,7 +214,24 @@ from pathlib import Path
 
 import yaml
 
-for path in sys.argv[1:]:
+pre_commit_path = Path(sys.argv[1])
+with pre_commit_path.open(encoding="utf-8") as stream:
+    pre_commit = yaml.safe_load(stream)
+
+repos = pre_commit["repos"]
+basedpyright_repo = next(
+    repo
+    for repo in repos
+    if repo["repo"] == "https://github.com/DetachHead/basedpyright-prek-mirror"
+)
+assert basedpyright_repo["rev"] == "1.39.9"
+assert basedpyright_repo["hooks"] == [{"id": "basedpyright"}]
+
+local_repo = next(repo for repo in repos if repo["repo"] == "local")
+assert all(hook["id"] != "basedpyright" for hook in local_repo["hooks"])
+assert any(hook["id"] == "pytest" for hook in local_repo["hooks"])
+
+for path in sys.argv[2:]:
     with Path(path).open(encoding="utf-8") as stream:
         assert isinstance(yaml.safe_load(stream), dict)
 PY
