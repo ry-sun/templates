@@ -163,3 +163,59 @@ grep -Fxq \
 
 grep -Fq "GitHub publishing requires init_git" "$test_root/invalid-publish.log"
 test ! -e "$invalid_publish_output/invalid-publish"
+
+python3 -m json.tool "$cli_project/.cspell.json" >/dev/null
+
+for project in "$cli_project" "$lib_project"; do
+    python3 -c \
+        'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+        "$project/pyproject.toml"
+
+    (
+        cd "$project"
+        uv lock --check
+        uv sync --locked
+        uv run ruff format --check .
+        uv run ruff check .
+        uv run basedpyright
+        uv run pytest
+    )
+done
+
+uvx pre-commit validate-config "$cli_project/.pre-commit-config.yaml"
+
+uv run --with pyyaml python - \
+    "$cli_project/.github/workflows/check.yml" \
+    "$cli_project/.github/dependabot.yml" <<'PY'
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import yaml
+
+for path in sys.argv[1:]:
+    with Path(path).open(encoding="utf-8") as stream:
+        assert isinstance(yaml.safe_load(stream), dict)
+PY
+
+test -z "$(git -C "$cli_project" status --porcelain)"
+
+uv run --project "$cli_project" my-python-project --help >/dev/null
+uv run --project "$cli_project" python -m my_python_project --help >/dev/null
+test "$(
+    uv run --project "$lib_project" \
+        python -c 'from example_library import package_name; print(package_name())'
+)" = "example-library"
+
+uv build "$cli_project"
+uv build "$lib_project"
+
+cli_wheel=$(find "$cli_project/dist" -name '*.whl' -print -quit)
+lib_wheel=$(find "$lib_project/dist" -name '*.whl' -print -quit)
+test -n "$cli_wheel"
+test -n "$lib_wheel"
+unzip -l "$cli_wheel" | grep -Fq "my_python_project/__init__.py"
+unzip -l "$cli_wheel" | grep -Fq "my_python_project/py.typed"
+unzip -l "$lib_wheel" | grep -Fq "example_library/__init__.py"
+unzip -l "$lib_wheel" | grep -Fq "example_library/py.typed"
