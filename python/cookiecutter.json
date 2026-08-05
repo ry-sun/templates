@@ -1,0 +1,47 @@
+{
+  "project_name": "My Python Project",
+  "project_slug": "{{ cookiecutter.project_name | lower | replace(' ', '-') | replace('_', '-') }}",
+  "project_type": ["cli", "lib"],
+  "description": "A Python project.",
+  "python_version": ["3.12", "3.13", "3.14"],
+  "author_name": "Ryan Sun",
+  "author_email": "ruiyangsun02@gmail.com",
+  "github_username": "ry-sun",
+  "license": ["MIT OR Apache-2.0", "MIT", "Apache-2.0", "None"],
+  "copyright_year": "2026",
+  "include_cspell": true,
+  "include_pre_commit": true,
+  "include_github_actions": true,
+  "include_dependabot": true,
+  "init_git": true,
+  "github_repository": ["none", "private", "public"],
+  "__package_name": "{{ cookiecutter.project_slug | replace('-', '_') }}",
+  "__ruff_target_version": "py{{ cookiecutter.python_version | replace('.', '') }}",
+  "__prompts__": {
+    "project_name": "Human-readable project name",
+    "project_slug": "Repository, distribution, and CLI command name",
+    "project_type": {
+      "__prompt__": "What kind of Python project should be generated?",
+      "cli": "Typer command-line application",
+      "lib": "Reusable library"
+    },
+    "description": "Short project description",
+    "python_version": "Minimum Python version",
+    "author_name": "Author name",
+    "author_email": "Author email",
+    "github_username": "GitHub username or organization",
+    "license": "Project license",
+    "copyright_year": "Copyright year",
+    "include_cspell": "Include CSpell configuration",
+    "include_pre_commit": "Include pre-commit configuration",
+    "include_github_actions": "Include a GitHub Actions check workflow",
+    "include_dependabot": "Include Dependabot configuration",
+    "init_git": "Initialize Git and create an initial commit",
+    "github_repository": {
+      "__prompt__": "Publish generated project to GitHub",
+      "none": "Do not publish",
+      "private": "Create a private repository",
+      "public": "Create a public repository"
+    }
+  }
+}
