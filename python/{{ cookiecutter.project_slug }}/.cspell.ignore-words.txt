@@ -1,0 +1,7 @@
+basedpyright
+cookiecutter
+hatchling
+pyproject
+pytest
+ruff
+typer

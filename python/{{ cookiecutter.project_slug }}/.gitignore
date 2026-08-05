@@ -1,0 +1,54 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.basedpyright/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+
+# Builds and package metadata
+build/
+dist/
+*.egg-info/
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+*.icloud
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+.fuse_hidden*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
