@@ -1,0 +1,53 @@
+{
+  "project_name": "My Rust Project",
+  "project_slug": "{{ cookiecutter.project_name | lower | replace(' ', '-') | replace('_', '-') }}",
+  "crate_type": ["bin", "lib"],
+  "description": "A Rust project.",
+  "edition": ["2024", "2021"],
+  "rust_version": "1.97",
+  "toolchain": ["stable", "nightly"],
+  "author_name": "Ryan Sun",
+  "author_email": "ruiyangsun02@gmail.com",
+  "github_username": "ry-sun",
+  "license": ["MIT OR Apache-2.0", "MIT", "Apache-2.0", "None"],
+  "copyright_year": "2026",
+  "publish_to_crates_io": false,
+  "include_cspell": true,
+  "include_pre_commit": true,
+  "include_github_actions": true,
+  "include_dependabot": true,
+  "init_git": true,
+  "github_repository": ["none", "private", "public"],
+  "__crate_name": "{{ cookiecutter.project_slug | replace('-', '_') }}",
+  "__entrypoint": "{{ 'main.rs' if cookiecutter.crate_type == 'bin' else 'lib.rs' }}",
+  "__prompts__": {
+    "project_name": "Human-readable project name",
+    "project_slug": "Repository and Cargo package name",
+    "crate_type": {
+      "__prompt__": "What kind of Rust crate should be generated?",
+      "bin": "Binary application",
+      "lib": "Reusable library"
+    },
+    "description": "Short project description",
+    "edition": "Rust edition",
+    "rust_version": "Minimum supported Rust version (MSRV)",
+    "toolchain": "Rust toolchain channel",
+    "author_name": "Author name",
+    "author_email": "Author email",
+    "github_username": "GitHub username or organization",
+    "license": "Project license",
+    "copyright_year": "Copyright year",
+    "publish_to_crates_io": "Allow publishing to crates.io",
+    "include_cspell": "Include CSpell configuration",
+    "include_pre_commit": "Include pre-commit configuration",
+    "include_github_actions": "Include a GitHub Actions check workflow",
+    "include_dependabot": "Include Dependabot configuration",
+    "init_git": "Initialize Git and create an initial commit",
+    "github_repository": {
+      "__prompt__": "Publish generated project to GitHub",
+      "none": "Do not publish",
+      "private": "Create a private repository",
+      "public": "Create a public repository"
+    }
+  }
+}

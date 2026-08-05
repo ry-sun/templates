@@ -1,0 +1,36 @@
+{
+  "allowCompoundWords": true,
+  "cache": {
+    "useCache": true
+  },
+  "caseSensitive": true,
+  "dictionaries": [
+    "en-US",
+    "ignore-words"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "addWords": true,
+      "description": "Project-specific terms",
+      "name": "ignore-words",
+      "path": ".cspell.ignore-words.txt"
+    }
+  ],
+  "ignorePaths": [
+    ".git/",
+    "target/",
+    "Cargo.lock",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "language": "en",
+  "languageSettings": [
+    {
+      "dictionaries": [
+        "rust"
+      ],
+      "languageId": "rust"
+    }
+  ],
+  "useGitignore": true
+}
