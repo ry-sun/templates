@@ -37,6 +37,21 @@ test -f "$repository_root/python/cookiecutter.json"
 test -f "$repository_root/python/hooks/pre_gen_project.py"
 python3 -m json.tool "$repository_root/python/cookiecutter.json" >/dev/null
 
+uv run --with pyyaml python - "$repository_root/.github/workflows/test.yml" <<'PY'
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import yaml
+
+with Path(sys.argv[1]).open(encoding="utf-8") as stream:
+    workflow = yaml.safe_load(stream)
+
+python_steps = workflow["jobs"]["python"]["steps"]
+assert any(step.get("run") == "./scripts/test-python-template.sh" for step in python_steps)
+PY
+
 invalid_output="$test_root/invalid-name"
 if uvx cookiecutter "$repository_root/python" \
     --no-input \
