@@ -2,6 +2,7 @@
   "project_name": "My Rust Project",
   "project_slug": "{{ cookiecutter.project_name | lower | replace(' ', '-') | replace('_', '-') }}",
   "crate_type": ["bin", "lib"],
+  "use_workspace": false,
   "description": "A Rust project.",
   "edition": ["2024", "2021"],
   "rust_version": "1.97",
@@ -28,6 +29,7 @@
       "bin": "Binary application",
       "lib": "Reusable library"
     },
+    "use_workspace": "Generate a Cargo workspace with crates under crates/",
     "description": "Short project description",
     "edition": "Rust edition",
     "rust_version": "Minimum supported Rust version (MSRV)",

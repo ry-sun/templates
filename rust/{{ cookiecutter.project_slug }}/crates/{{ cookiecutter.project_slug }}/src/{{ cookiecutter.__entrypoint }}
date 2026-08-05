@@ -1,0 +1,21 @@
+{% if cookiecutter.crate_type == "bin" -%}
+fn main() {
+    println!("Hello from {{ cookiecutter.project_name }}!");
+}
+{% else -%}
+/// Return this package's Cargo name.
+#[must_use]
+pub const fn package_name() -> &'static str {
+    "{{ cookiecutter.project_slug }}"
+}
+
+#[cfg(test)]
+mod tests {
+    use super::package_name;
+
+    #[test]
+    fn reports_package_name() {
+        assert_eq!(package_name(), "{{ cookiecutter.project_slug }}");
+    }
+}
+{% endif -%}

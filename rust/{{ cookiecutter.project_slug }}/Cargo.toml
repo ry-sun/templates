@@ -1,3 +1,28 @@
+{% if cookiecutter.use_workspace -%}
+[workspace]
+members = ["crates/*"]
+resolver = "{{ '3' if cookiecutter.edition == '2024' else '2' }}"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["{{ cookiecutter.author_name }} <{{ cookiecutter.author_email }}>"]
+edition = "{{ cookiecutter.edition }}"
+rust-version = "{{ cookiecutter.rust_version }}"
+description = "{{ cookiecutter.description }}"
+readme = "README.md"
+repository = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}"
+{% if cookiecutter.license != "None" -%}
+license = "{{ cookiecutter.license }}"
+{% endif -%}
+publish = {{ cookiecutter.publish_to_crates_io | lower }}
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"
+{% else -%}
 [package]
 name = "{{ cookiecutter.project_slug }}"
 version = "0.1.0"
@@ -18,3 +43,4 @@ unsafe_code = "forbid"
 [lints.clippy]
 all = "warn"
 pedantic = "warn"
+{% endif -%}

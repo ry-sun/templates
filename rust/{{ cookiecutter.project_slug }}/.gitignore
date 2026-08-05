@@ -54,7 +54,7 @@ Temporary Items
 debug/
 target/
 
-{% if cookiecutter.crate_type == "lib" -%}
+{% if cookiecutter.crate_type == "lib" and not cookiecutter.use_workspace -%}
 # Libraries commonly omit Cargo.lock so downstream users resolve dependencies.
 Cargo.lock
 {% endif -%}

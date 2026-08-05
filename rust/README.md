@@ -1,12 +1,13 @@
 # Rust Cookiecutter
 
-This template creates either a Rust binary or library while sharing the same
-repository conventions.
+This template creates a Rust binary or library as either a single crate or a
+Cargo workspace while sharing the same repository conventions.
 
 ## Prompts
 
 - Project and Cargo package names
 - Binary or library crate
+- Optional Cargo workspace with member crates under `crates/`
 - Rust edition, minimum supported Rust version, and toolchain channel
 - Author and GitHub account
 - License and crates.io publishing preference
@@ -35,7 +36,25 @@ uvx cookiecutter ./rust \
   init_git=false
 ```
 
-The post-generation hook removes files for integrations that were not selected.
+For a non-interactive workspace with a binary starter crate:
+
+```sh
+uvx cookiecutter ./rust \
+  --no-input \
+  project_name="Example Workspace" \
+  use_workspace=true
+```
+
+The workspace root owns shared package metadata and lint configuration. Its
+initial crate is stored at `crates/<project_slug>/`. Add another direct member
+without editing the root manifest:
+
+```sh
+cargo new --lib crates/another-crate
+```
+
+The post-generation hook removes the unused crate layout and files for
+integrations that were not selected.
 
 ## Repository initialization
 

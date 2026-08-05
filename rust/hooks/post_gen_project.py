@@ -11,6 +11,7 @@ INCLUDE_CSPELL = "{{ cookiecutter.include_cspell }}" == "True"
 INCLUDE_PRE_COMMIT = "{{ cookiecutter.include_pre_commit }}" == "True"
 INCLUDE_GITHUB_ACTIONS = "{{ cookiecutter.include_github_actions }}" == "True"
 INCLUDE_DEPENDABOT = "{{ cookiecutter.include_dependabot }}" == "True"
+USE_WORKSPACE = "{{ cookiecutter.use_workspace }}".lower() == "true"
 LICENSE = "{{ cookiecutter.license }}"
 INIT_GIT = "{{ cookiecutter.init_git }}".lower() == "true"
 GITHUB_REPOSITORY = {{ cookiecutter.github_repository | tojson }}
@@ -70,6 +71,13 @@ def publish_to_github() -> None:
         ]
     )
 
+
+if USE_WORKSPACE:
+    remove("src")
+    Path("Cargo.lock.template").rename("Cargo.lock")
+else:
+    remove("crates")
+    remove("Cargo.lock.template")
 
 if not INCLUDE_CSPELL:
     remove(".cspell.json")
