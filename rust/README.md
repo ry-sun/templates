@@ -18,6 +18,18 @@ Cargo workspace while sharing the same repository conventions.
 The first value of each choice is the default. `project_slug`, the Rust crate
 identifier, and `src/main.rs` or `src/lib.rs` are derived from the answers.
 
+## Formatter configuration
+
+The generated `.rustfmt.toml` follows the selected toolchain. Stable projects
+receive only the edition, 100-column width, and Unix newline settings. Nightly
+projects receive an explicit snapshot of every non-deprecated option reported
+by nightly rustfmt, with the selected edition and the template's formatting
+preferences applied.
+
+The nightly snapshot is intentionally version-sensitive. When nightly rustfmt
+adds, removes, renames, or changes a default setting, update the template and
+its `required_version` together.
+
 ## Generate
 
 From the repository root:
