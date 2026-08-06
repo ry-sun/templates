@@ -12,6 +12,8 @@ trap cleanup EXIT HUP INT TERM
 
 bin_output="$test_root/bin"
 lib_output="$test_root/lib"
+nightly_output="$test_root/nightly"
+nightly_defaults="$test_root/nightly-rustfmt-defaults.toml"
 workspace_bin_output="$test_root/workspace-bin"
 workspace_lib_output="$test_root/workspace-lib"
 github_output="$test_root/github"
@@ -80,6 +82,21 @@ uvx cookiecutter "$repository_root/rust" \
 uvx cookiecutter "$repository_root/rust" \
     --no-input \
     --accept-hooks yes \
+    --output-dir "$nightly_output" \
+    project_name="Nightly Project" \
+    project_slug="nightly-project" \
+    toolchain=nightly \
+    edition=2024 \
+    include_cspell=false \
+    include_pre_commit=false \
+    include_github_actions=false \
+    include_dependabot=false \
+    init_git=false \
+    github_repository=none
+
+uvx cookiecutter "$repository_root/rust" \
+    --no-input \
+    --accept-hooks yes \
     --output-dir "$workspace_bin_output" \
     project_name="Example Workspace" \
     project_slug="example-workspace" \
@@ -127,6 +144,7 @@ fi
 
 bin_project="$bin_output/my-rust-project"
 lib_project="$lib_output/example-library"
+nightly_project="$nightly_output/nightly-project"
 workspace_bin_project="$workspace_bin_output/example-workspace"
 workspace_lib_project="$workspace_lib_output/example-workspace-library"
 github_project="$github_output/published-project"
@@ -195,6 +213,49 @@ test ! -e "$invalid_output/invalid-project"
 python3 -m json.tool "$repository_root/rust/cookiecutter.json" >/dev/null
 python3 -m json.tool "$bin_project/.cspell.json" >/dev/null
 uvx pre-commit validate-config "$bin_project/.pre-commit-config.yaml"
+
+(
+    cd "$nightly_project"
+    rustfmt --print-config default
+) >"$nightly_defaults"
+
+python3 - \
+    "$bin_project/.rustfmt.toml" \
+    "$nightly_project/.rustfmt.toml" \
+    "$nightly_defaults" <<'PY'
+import sys
+import tomllib
+from pathlib import Path
+
+stable_path = Path(sys.argv[1])
+nightly_path = Path(sys.argv[2])
+nightly_defaults_path = Path(sys.argv[3])
+
+with stable_path.open("rb") as config_file:
+    stable_config = tomllib.load(config_file)
+with nightly_path.open("rb") as config_file:
+    nightly_config = tomllib.load(config_file)
+with nightly_defaults_path.open("rb") as config_file:
+    expected_nightly = tomllib.load(config_file)
+
+assert stable_config == {
+    "edition": "2024",
+    "max_width": 100,
+    "newline_style": "Unix",
+}
+
+expected_nightly.update(
+    {
+        "edition": "2024",
+        "style_edition": "2024",
+        "max_width": 100,
+        "newline_style": "Unix",
+        "use_field_init_shorthand": True,
+        "use_try_shorthand": True,
+    }
+)
+assert nightly_config == expected_nightly
+PY
 
 for workspace_case in \
     "$workspace_bin_project|example-workspace|2024|3" \
@@ -288,5 +349,10 @@ for project in \
         -D warnings
     cargo test --manifest-path "$project/Cargo.toml" --all-features
 done
+
+(
+    cd "$nightly_project"
+    cargo fmt --all -- --check
+)
 
 test -z "$(git -C "$workspace_bin_project" status --porcelain)"
