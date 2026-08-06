@@ -63,6 +63,12 @@ test -f "$core_project/next-env.d.ts"
 test -f "$core_project/src/app/page.tsx"
 test -f "$core_project/src/app/page.test.tsx"
 test -f "$core_project/vitest.config.mts"
+test -f "$core_project/components.json"
+test -f "$core_project/src/lib/utils.ts"
+test ! -d "$core_project/src/components/ui"
+test ! -d "$core_project/src/app/themes"
+grep -Fq '"baseColor": "neutral"' "$core_project/components.json"
+grep -Fq 'oklch(0.145 0 0)' "$core_project/src/app/globals.css"
 
 (
     cd "$core_project"
@@ -73,3 +79,23 @@ test -f "$core_project/vitest.config.mts"
     pnpm build
 )
 test -d "$core_project/.next"
+
+zinc_output="$test_root/zinc"
+uvx cookiecutter "$repository_root/nextjs" \
+    --no-input \
+    --accept-hooks yes \
+    --output-dir "$zinc_output" \
+    project_slug="zinc-frontend" \
+    shadcn_base_color=zinc \
+    include_cspell=false \
+    include_pre_commit=false \
+    include_github_actions=false \
+    include_dependabot=false \
+    init_git=false \
+    github_repository=none
+zinc_project="$zinc_output/zinc-frontend"
+
+grep -Fq '"baseColor": "zinc"' "$zinc_project/components.json"
+grep -Fq 'oklch(0.141 0.005 285.823)' "$zinc_project/src/app/globals.css"
+test ! -d "$zinc_project/src/app/themes"
+! cmp -s "$core_project/src/app/globals.css" "$zinc_project/src/app/globals.css"
