@@ -157,6 +157,8 @@ test -f "$default_project/.cspell.ignore-words.txt"
 test -f "$default_project/.pre-commit-config.yaml"
 test -f "$default_project/LICENSE-MIT"
 test -f "$default_project/LICENSE-APACHE"
+test -f "$default_project/.github/workflows/check.yml"
+test -f "$default_project/.github/dependabot.yml"
 
 python3 - \
     "$default_project/src-tauri/Cargo.toml" \
@@ -224,6 +226,7 @@ test ! -e "$stripped_project/LICENSE-APACHE"
 test ! -e "$stripped_project/.cspell.json"
 test ! -e "$stripped_project/.cspell.ignore-words.txt"
 test ! -e "$stripped_project/.pre-commit-config.yaml"
+test ! -e "$stripped_project/.github"
 test ! -e "$stripped_project/.git"
 grep -Fq 'oklch(0.141 0.005 285.823)' "$stripped_project/src/app/globals.css"
 
@@ -237,6 +240,9 @@ uvx cookiecutter "$repository_root/tauri" \
     project_slug="published-tauri-app" \
     bundle_identifier="com.example.publishedtauriapp" \
     platform_scope=both \
+    desktop_targets=macos \
+    mobile_targets=android \
+    ci_scope=full-builds \
     init_git=true \
     github_repository=private
 published_project="$published_output/published-tauri-app"
@@ -253,6 +259,63 @@ grep -Fxq "auth status" "$fake_gh_log"
 grep -Fxq \
     "repo create ry-sun/published-tauri-app --private --source=. --remote=origin --push" \
     "$fake_gh_log"
+
+uv run --with pyyaml python - \
+    "$default_project/.github/workflows/check.yml" \
+    "$default_project/.github/dependabot.yml" \
+    "$published_project/.github/workflows/check.yml" <<'PY'
+import sys
+from pathlib import Path
+
+import yaml
+
+
+def load_yaml(path: str) -> dict:
+    with Path(path).open(encoding="utf-8") as stream:
+        value = yaml.safe_load(stream)
+    assert isinstance(value, dict)
+    return value
+
+
+default_workflow = load_yaml(sys.argv[1])
+assert set(default_workflow["jobs"]) == {"frontend", "rust"}
+assert any(
+    step.get("run") == "pnpm install --frozen-lockfile"
+    for step in default_workflow["jobs"]["frontend"]["steps"]
+)
+assert any(
+    "cargo clippy --manifest-path src-tauri/Cargo.toml" in step.get("run", "")
+    for step in default_workflow["jobs"]["rust"]["steps"]
+)
+
+dependabot = load_yaml(sys.argv[2])
+ecosystems = {
+    (update["package-ecosystem"], update["directory"])
+    for update in dependabot["updates"]
+}
+assert ecosystems == {
+    ("cargo", "/src-tauri"),
+    ("github-actions", "/"),
+    ("npm", "/"),
+}
+
+full_workflow = load_yaml(sys.argv[3])
+assert set(full_workflow["jobs"]) == {
+    "build-android",
+    "build-macos",
+    "frontend",
+    "rust",
+}
+android_steps = full_workflow["jobs"]["build-android"]["steps"]
+assert any(step.get("run") == "pnpm tauri android init --ci" for step in android_steps)
+assert any(
+    step.get("run") == "pnpm tauri android build --debug --apk --ci"
+    for step in android_steps
+)
+workflow_text = Path(sys.argv[3]).read_text()
+assert "tauri-action" not in workflow_text
+assert "release" not in workflow_text.lower()
+PY
 
 python3 -m json.tool "$default_project/.cspell.json" >/dev/null
 uvx pre-commit validate-config "$default_project/.pre-commit-config.yaml"
