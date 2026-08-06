@@ -37,6 +37,22 @@ test -f "$repository_root/nextjs/cookiecutter.json"
 test -f "$repository_root/nextjs/hooks/pre_gen_project.py"
 python3 -m json.tool "$repository_root/nextjs/cookiecutter.json" >/dev/null
 
+uv run --with pyyaml python - "$repository_root/.github/workflows/test.yml" <<'PY'
+import sys
+from pathlib import Path
+
+import yaml
+
+with Path(sys.argv[1]).open(encoding="utf-8") as stream:
+    workflow = yaml.safe_load(stream)
+
+nextjs_steps = workflow["jobs"]["nextjs"]["steps"]
+assert any(
+    step.get("run") == "./scripts/test-nextjs-template.sh"
+    for step in nextjs_steps
+)
+PY
+
 invalid_output="$test_root/invalid"
 if uvx cookiecutter "$repository_root/nextjs" \
     --no-input \
@@ -190,6 +206,20 @@ python3 -m json.tool "$vercel_project/vercel.json" >/dev/null
     pnpm build
 )
 test -d "$vercel_project/.next"
+test ! -e "$core_project/out"
+test ! -e "$vercel_project/out"
+
+for project in "$core_project" "$zinc_project" "$vercel_project"; do
+    test ! -e "$project/src/app/themes"
+    python3 -m json.tool "$project/package.json" >/dev/null
+    python3 -m json.tool "$project/biome.json" >/dev/null
+    python3 -m json.tool "$project/components.json" >/dev/null
+    python3 -m json.tool "$project/tsconfig.json" >/dev/null
+done
+
+grep -Fq "provider-neutral Node.js server" "$core_project/README.md"
+grep -Fq "Next.js static export" "$zinc_project/README.md"
+grep -Fq "configured for Vercel" "$vercel_project/README.md"
 
 for project in "$core_project" "$vercel_project"; do
     test -d "$project/.git"
@@ -206,11 +236,19 @@ grep -Fxq \
     "$fake_gh_log"
 
 python3 -m json.tool "$core_project/.cspell.json" >/dev/null
+python3 -m json.tool "$vercel_project/.cspell.json" >/dev/null
 uvx pre-commit validate-config "$core_project/.pre-commit-config.yaml"
+uvx pre-commit validate-config "$vercel_project/.pre-commit-config.yaml"
 uv run --with pyyaml python - \
     "$core_project/.pre-commit-config.yaml" \
     "$core_project/.github/workflows/check.yml" \
-    "$core_project/.github/dependabot.yml" <<'PY'
+    "$core_project/.github/dependabot.yml" \
+    "$core_project/pnpm-lock.yaml" \
+    "$zinc_project/pnpm-lock.yaml" \
+    "$vercel_project/.pre-commit-config.yaml" \
+    "$vercel_project/.github/workflows/check.yml" \
+    "$vercel_project/.github/dependabot.yml" \
+    "$vercel_project/pnpm-lock.yaml" <<'PY'
 import sys
 from pathlib import Path
 

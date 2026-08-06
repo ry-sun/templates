@@ -20,6 +20,15 @@ pnpm test
 pnpm build
 ```
 
+## UI components
+
+shadcn/ui is configured for this project's aliases and selected base color,
+but the starter intentionally includes no UI components. Add one when needed:
+
+```sh
+pnpm dlx shadcn@latest add button
+```
+
 ## Deployment
 
 {% if cookiecutter.deployment_target == "node" -%}
