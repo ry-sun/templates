@@ -41,3 +41,35 @@ if uvx cookiecutter "$repository_root/nextjs" \
     exit 1
 fi
 grep -Fq "GitHub publishing requires init_git" "$test_root/invalid-publish.log"
+
+core_output="$test_root/core"
+uvx cookiecutter "$repository_root/nextjs" \
+    --no-input \
+    --accept-hooks yes \
+    --output-dir "$core_output" \
+    project_name="Example Frontend" \
+    project_slug="example-frontend" \
+    include_cspell=false \
+    include_pre_commit=false \
+    include_github_actions=false \
+    include_dependabot=false \
+    init_git=false \
+    github_repository=none
+core_project="$core_output/example-frontend"
+
+test -f "$core_project/package.json"
+test -f "$core_project/pnpm-lock.yaml"
+test -f "$core_project/next-env.d.ts"
+test -f "$core_project/src/app/page.tsx"
+test -f "$core_project/src/app/page.test.tsx"
+test -f "$core_project/vitest.config.mts"
+
+(
+    cd "$core_project"
+    pnpm install --frozen-lockfile
+    pnpm check
+    pnpm typecheck
+    pnpm test
+    pnpm build
+)
+test -d "$core_project/.next"
