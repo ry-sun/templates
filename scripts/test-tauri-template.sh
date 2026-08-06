@@ -114,6 +114,57 @@ grep -Fq 'output: "export"' "$default_project/next.config.ts"
 grep -Fq 'TAURI_DEV_HOST' "$default_project/next.config.ts"
 grep -Fq 'invoke<string>("greet"' "$default_project/src/app/page.tsx"
 
+test -f "$default_project/src-tauri/Cargo.toml"
+test -f "$default_project/src-tauri/build.rs"
+test -f "$default_project/src-tauri/tauri.conf.json"
+test -f "$default_project/src-tauri/capabilities/default.json"
+test -f "$default_project/src-tauri/src/lib.rs"
+test -f "$default_project/src-tauri/src/main.rs"
+test -f "$default_project/src-tauri/icons/icon.icns"
+test -f "$default_project/src-tauri/icons/icon.ico"
+test -f "$default_project/rust-toolchain.toml"
+test -f "$default_project/.rustfmt.toml"
+test -f "$default_project/.clippy.toml"
+
+python3 - \
+    "$default_project/src-tauri/Cargo.toml" \
+    "$default_project/src-tauri/tauri.conf.json" \
+    "$default_project/src-tauri/capabilities/default.json" <<'PY'
+import json
+import sys
+import tomllib
+from pathlib import Path
+
+with Path(sys.argv[1]).open("rb") as manifest_file:
+    manifest = tomllib.load(manifest_file)
+
+package = manifest["package"]
+assert package["name"] == "my-tauri-app"
+assert package["edition"] == "2024"
+assert package["rust-version"] == "1.97"
+assert package["publish"] is False
+assert manifest["dependencies"]["tauri"]["version"] == "=2.11.5"
+assert manifest["build-dependencies"]["tauri-build"]["version"] == "=2.6.3"
+
+config = json.loads(Path(sys.argv[2]).read_text())
+assert config["productName"] == "My Tauri App"
+assert config["identifier"] == "com.rysun.mytauriapp"
+assert config["build"] == {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../out",
+}
+
+capability = json.loads(Path(sys.argv[3]).read_text())
+assert capability["identifier"] == "default"
+assert capability["windows"] == ["main"]
+assert capability["permissions"] == ["core:default"]
+PY
+
+grep -Fq 'fn greeting(name: &str) -> String' "$default_project/src-tauri/src/lib.rs"
+grep -Fq '#[tauri::command]' "$default_project/src-tauri/src/lib.rs"
+
 (
     cd "$default_project"
     run_pnpm install --frozen-lockfile
@@ -121,5 +172,15 @@ grep -Fq 'invoke<string>("greet"' "$default_project/src/app/page.tsx"
     run_pnpm typecheck
     run_pnpm test
     run_pnpm build
+    cargo metadata --manifest-path src-tauri/Cargo.toml --format-version 1 --no-deps >/dev/null
+    cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+    cargo clippy \
+        --manifest-path src-tauri/Cargo.toml \
+        --all-targets \
+        --all-features \
+        -- \
+        -D warnings
+    cargo test --manifest-path src-tauri/Cargo.toml --all-features
+    run_pnpm tauri build --no-bundle
 )
 test -f "$default_project/out/index.html"
