@@ -121,6 +121,83 @@ test ! -e "$core_project/vercel.json"
 grep -Fq '"baseColor": "neutral"' "$core_project/components.json"
 grep -Fq 'oklch(0.145 0 0)' "$core_project/src/app/globals.css"
 
+python3 - "$core_project/biome.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+config = json.loads(Path(sys.argv[1]).read_text())
+
+assert config["vcs"]["defaultBranch"] == "main"
+assert config["formatter"]["lineEnding"] == "lf"
+assert config["formatter"]["lineWidth"] == 100
+assert config["javascript"]["formatter"] == {
+    "arrowParentheses": "always",
+    "jsxQuoteStyle": "double",
+    "quoteStyle": "double",
+    "semicolons": "always",
+    "trailingCommas": "all",
+}
+assert config["css"]["parser"] == {
+    "cssModules": True,
+    "tailwindDirectives": True,
+}
+assert config["css"]["formatter"]["enabled"] is True
+assert config["linter"]["domains"]["test"] == "recommended"
+assert config["assist"]["enabled"] is True
+PY
+
+uv run --with pyyaml python - "$core_project/.pre-commit-config.yaml" <<'PY'
+import sys
+from pathlib import Path
+
+import yaml
+
+config = yaml.safe_load(Path(sys.argv[1]).read_text())
+assert config["default_language_version"]["node"] == "system"
+repositories = {repository["repo"]: repository for repository in config["repos"]}
+biome = repositories["https://github.com/biomejs/pre-commit"]
+assert biome["rev"] == "v2.5.7"
+assert [hook["id"] for hook in biome["hooks"]] == [
+    "biome-ci",
+    "biome-check",
+    "biome-format",
+    "biome-lint",
+]
+assert all(hook["stages"] == ["pre-commit"] for hook in biome["hooks"])
+assert [hook["id"] for hook in repositories["local"]["hooks"]] == [
+    "typecheck",
+    "test",
+]
+PY
+
+for ignored_path in \
+    .AppleDouble \
+    .env.production \
+    .idea/workspace.xml \
+    .next/cache/artifact \
+    .npm/_cacache/index \
+    .vscode/settings.json \
+    desktop.ini \
+    notes~ \
+    src/app/page.back.tsx; do
+    git -c core.excludesFile=/dev/null -C "$core_project" \
+        check-ignore --quiet --no-index "$ignored_path"
+done
+macos_icon=$(printf 'Icon\r')
+git -c core.excludesFile=/dev/null -C "$core_project" \
+    check-ignore --quiet --no-index "$macos_icon"
+if git -c core.excludesFile=/dev/null -C "$core_project" \
+    check-ignore --quiet --no-index Icon; then
+    echo "expected a plain Icon filename to remain trackable" >&2
+    exit 1
+fi
+if git -c core.excludesFile=/dev/null -C "$core_project" \
+    check-ignore --quiet --no-index .env.example; then
+    echo "expected .env.example to remain trackable" >&2
+    exit 1
+fi
+
 (
     cd "$core_project"
     run_pnpm install --frozen-lockfile
@@ -245,6 +322,13 @@ python3 -m json.tool "$core_project/.cspell.json" >/dev/null
 python3 -m json.tool "$vercel_project/.cspell.json" >/dev/null
 uvx pre-commit validate-config "$core_project/.pre-commit-config.yaml"
 uvx pre-commit validate-config "$vercel_project/.pre-commit-config.yaml"
+for hook_id in biome-ci biome-check biome-format biome-lint; do
+    (
+        cd "$core_project"
+        uvx pre-commit run "$hook_id" --all-files
+    )
+done
+test -z "$(git -C "$core_project" status --porcelain)"
 uv run --with pyyaml python - \
     "$core_project/.pre-commit-config.yaml" \
     "$core_project/.github/workflows/check.yml" \

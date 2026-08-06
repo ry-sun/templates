@@ -1,6 +1,8 @@
 default_install_hook_types:
   - pre-commit
   - pre-push
+default_language_version:
+  node: system
 default_stages:
   - pre-commit
   - pre-push
@@ -40,13 +42,20 @@ repos:
       - id: cspell
 {% endif %}
 
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.5.7
+    hooks:
+      - id: biome-ci
+        stages: [pre-commit]
+      - id: biome-check
+        stages: [pre-commit]
+      - id: biome-format
+        stages: [pre-commit]
+      - id: biome-lint
+        stages: [pre-commit]
+
   - repo: local
     hooks:
-      - id: biome
-        name: biome
-        entry: pnpm check
-        language: system
-        pass_filenames: false
       - id: typecheck
         name: typecheck
         entry: pnpm typecheck

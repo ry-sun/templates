@@ -7,8 +7,6 @@ const projectName = {{ cookiecutter.project_name | tojson }};
 describe("Home", () => {
   it("renders the generated project name", () => {
     render(<Home />);
-    expect(
-      screen.getByRole("heading", { level: 1, name: projectName }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: projectName })).toBeInTheDocument();
   });
 });
