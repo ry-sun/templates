@@ -265,3 +265,6 @@ $RECYCLE.BIN/
 .idea/
 .vscode/
 # End of Custom Gitignore files
+
+# Rust build output
+target/
