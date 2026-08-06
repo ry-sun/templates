@@ -86,10 +86,8 @@ uvx cookiecutter "$repository_root/nextjs" \
     --no-input \
     --accept-hooks yes \
     --output-dir "$core_output" \
-    project_name="Example Frontend" \
-    project_slug="example-frontend" \
     github_repository=none
-core_project="$core_output/example-frontend"
+core_project="$core_output/my-nextjs-app"
 
 test -f "$core_project/package.json"
 test -f "$core_project/pnpm-lock.yaml"

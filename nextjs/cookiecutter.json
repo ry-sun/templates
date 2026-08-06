@@ -1,6 +1,6 @@
 {
   "project_name": "My Next.js App",
-  "project_slug": "{{ cookiecutter.project_name | lower | replace(' ', '-') | replace('_', '-') }}",
+  "project_slug": "{{ cookiecutter.project_name | lower | replace('.', '') | replace(' ', '-') | replace('_', '-') }}",
   "description": "A Next.js frontend application.",
   "author_name": "Ryan Sun",
   "author_email": "ruiyangsun02@gmail.com",
