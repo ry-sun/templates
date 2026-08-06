@@ -35,7 +35,31 @@ chmod +x "$fake_bin/gh"
 
 test -f "$repository_root/tauri/cookiecutter.json"
 test -f "$repository_root/tauri/hooks/pre_gen_project.py"
+test -f "$repository_root/tauri/README.md"
 python3 -m json.tool "$repository_root/tauri/cookiecutter.json" >/dev/null
+
+grep -Fq '| `tauri` |' "$repository_root/README.md"
+grep -Fq 'uvx cookiecutter ./tauri' "$repository_root/README.md"
+grep -Fq './scripts/test-tauri-template.sh' "$repository_root/README.md"
+grep -Fq '`platform_scope`' "$repository_root/tauri/README.md"
+grep -Fq '`desktop_targets`' "$repository_root/tauri/README.md"
+grep -Fq '`mobile_targets`' "$repository_root/tauri/README.md"
+grep -Fq '`ci_scope`' "$repository_root/tauri/README.md"
+
+uv run --with pyyaml python - "$repository_root/.github/workflows/test.yml" <<'PY'
+import sys
+from pathlib import Path
+
+import yaml
+
+with Path(sys.argv[1]).open(encoding="utf-8") as stream:
+    workflow = yaml.safe_load(stream)
+
+assert any(
+    step.get("run") == "./scripts/test-tauri-template.sh"
+    for step in workflow["jobs"]["tauri"]["steps"]
+)
+PY
 
 assert_generation_fails() {
     case_name=$1
@@ -159,6 +183,10 @@ test -f "$default_project/LICENSE-MIT"
 test -f "$default_project/LICENSE-APACHE"
 test -f "$default_project/.github/workflows/check.yml"
 test -f "$default_project/.github/dependabot.yml"
+test -f "$default_project/README.md"
+grep -Fq 'macOS, Windows, and Linux' "$default_project/README.md"
+! grep -Fq 'pnpm tauri android init' "$default_project/README.md"
+! grep -Fq 'pnpm tauri ios init' "$default_project/README.md"
 
 python3 - \
     "$default_project/src-tauri/Cargo.toml" \
@@ -229,6 +257,9 @@ test ! -e "$stripped_project/.pre-commit-config.yaml"
 test ! -e "$stripped_project/.github"
 test ! -e "$stripped_project/.git"
 grep -Fq 'oklch(0.141 0.005 285.823)' "$stripped_project/src/app/globals.css"
+grep -Fq 'pnpm tauri android init' "$stripped_project/README.md"
+grep -Fq 'pnpm tauri ios init' "$stripped_project/README.md"
+! grep -Fq 'Windows and Linux' "$stripped_project/README.md"
 
 published_output="$test_root/published"
 FAKE_GH_LOG="$fake_gh_log" PATH="$fake_bin:$PATH" \
@@ -259,6 +290,10 @@ grep -Fxq "auth status" "$fake_gh_log"
 grep -Fxq \
     "repo create ry-sun/published-tauri-app --private --source=. --remote=origin --push" \
     "$fake_gh_log"
+grep -Fq 'macOS' "$published_project/README.md"
+grep -Fq 'Android' "$published_project/README.md"
+grep -Fq 'full-builds' "$published_project/README.md"
+! grep -Fq 'pnpm tauri ios init' "$published_project/README.md"
 
 uv run --with pyyaml python - \
     "$default_project/.github/workflows/check.yml" \
