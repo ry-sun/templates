@@ -237,6 +237,8 @@ uvx cookiecutter "$repository_root/tauri" \
     bundle_identifier="com.example.mobiletauriapp" \
     platform_scope=mobile \
     mobile_targets=both \
+    edition=2021 \
+    rust_version=1.77.2 \
     shadcn_base_color=zinc \
     license=MIT \
     include_cspell=false \
@@ -260,6 +262,8 @@ grep -Fq 'oklch(0.141 0.005 285.823)' "$stripped_project/src/app/globals.css"
 grep -Fq 'pnpm tauri android init' "$stripped_project/README.md"
 grep -Fq 'pnpm tauri ios init' "$stripped_project/README.md"
 ! grep -Fq 'Windows and Linux' "$stripped_project/README.md"
+grep -Fq 'edition = "2021"' "$stripped_project/src-tauri/Cargo.toml"
+grep -Fq 'rust-version = "1.77.2"' "$stripped_project/src-tauri/Cargo.toml"
 
 published_output="$test_root/published"
 FAKE_GH_LOG="$fake_gh_log" PATH="$fake_bin:$PATH" \
@@ -274,6 +278,8 @@ uvx cookiecutter "$repository_root/tauri" \
     desktop_targets=macos \
     mobile_targets=android \
     ci_scope=full-builds \
+    toolchain=nightly \
+    enable_react_compiler=true \
     init_git=true \
     github_repository=private
 published_project="$published_output/published-tauri-app"
@@ -294,6 +300,9 @@ grep -Fq 'macOS' "$published_project/README.md"
 grep -Fq 'Android' "$published_project/README.md"
 grep -Fq 'full-builds' "$published_project/README.md"
 ! grep -Fq 'pnpm tauri ios init' "$published_project/README.md"
+grep -Fq 'reactCompiler: true' "$published_project/next.config.ts"
+grep -Fq 'channel = "nightly"' "$published_project/rust-toolchain.toml"
+grep -Fq 'unstable_features = true' "$published_project/.rustfmt.toml"
 
 uv run --with pyyaml python - \
     "$default_project/.github/workflows/check.yml" \
