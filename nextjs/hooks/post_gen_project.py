@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import subprocess
 import shutil
+import subprocess
 from pathlib import Path
 
 
 BASE_COLOR = "{{ cookiecutter.shadcn_base_color }}"
+DEPLOYMENT_TARGET = "{{ cookiecutter.deployment_target }}"
 
 
 def run_command(command: list[str], *, env: dict[str, str] | None = None) -> None:
@@ -33,6 +34,17 @@ def select_theme() -> None:
     shutil.rmtree(themes_directory)
 
 
+def remove(path: str) -> None:
+    """Remove a rendered file or directory when its variant is disabled."""
+    target = Path(path)
+    if target.is_dir():
+        shutil.rmtree(target)
+    elif target.exists():
+        target.unlink()
+
+
 select_theme()
+if DEPLOYMENT_TARGET != "vercel":
+    remove("vercel.json")
 install_dependencies()
 generate_types()

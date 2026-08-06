@@ -67,6 +67,7 @@ test -f "$core_project/components.json"
 test -f "$core_project/src/lib/utils.ts"
 test ! -d "$core_project/src/components/ui"
 test ! -d "$core_project/src/app/themes"
+test ! -e "$core_project/vercel.json"
 grep -Fq '"baseColor": "neutral"' "$core_project/components.json"
 grep -Fq 'oklch(0.145 0 0)' "$core_project/src/app/globals.css"
 
@@ -87,6 +88,8 @@ uvx cookiecutter "$repository_root/nextjs" \
     --output-dir "$zinc_output" \
     project_slug="zinc-frontend" \
     shadcn_base_color=zinc \
+    deployment_target=static \
+    enable_react_compiler=true \
     include_cspell=false \
     include_pre_commit=false \
     include_github_actions=false \
@@ -99,3 +102,58 @@ grep -Fq '"baseColor": "zinc"' "$zinc_project/components.json"
 grep -Fq 'oklch(0.141 0.005 285.823)' "$zinc_project/src/app/globals.css"
 test ! -d "$zinc_project/src/app/themes"
 ! cmp -s "$core_project/src/app/globals.css" "$zinc_project/src/app/globals.css"
+test ! -e "$zinc_project/vercel.json"
+grep -Fq 'reactCompiler: true' "$zinc_project/next.config.ts"
+grep -Fq 'output: "export"' "$zinc_project/next.config.ts"
+
+python3 - "$core_project/package.json" "$zinc_project/package.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+node_package = json.loads(Path(sys.argv[1]).read_text())
+static_package = json.loads(Path(sys.argv[2]).read_text())
+assert node_package["scripts"]["start"] == "next start"
+assert "start" not in static_package["scripts"]
+assert "babel-plugin-react-compiler" not in node_package["devDependencies"]
+assert static_package["devDependencies"]["babel-plugin-react-compiler"] == "1.0.0"
+PY
+
+(
+    cd "$zinc_project"
+    pnpm install --frozen-lockfile
+    pnpm check
+    pnpm typecheck
+    pnpm test
+    pnpm build
+)
+test -f "$zinc_project/out/index.html"
+
+vercel_output="$test_root/vercel"
+uvx cookiecutter "$repository_root/nextjs" \
+    --no-input \
+    --accept-hooks yes \
+    --output-dir "$vercel_output" \
+    project_slug="vercel-frontend" \
+    deployment_target=vercel \
+    include_cspell=false \
+    include_pre_commit=false \
+    include_github_actions=false \
+    include_dependabot=false \
+    init_git=false \
+    github_repository=none
+vercel_project="$vercel_output/vercel-frontend"
+
+test -f "$vercel_project/vercel.json"
+python3 -m json.tool "$vercel_project/vercel.json" >/dev/null
+! grep -Fq 'reactCompiler: true' "$vercel_project/next.config.ts"
+! grep -Fq 'output: "export"' "$vercel_project/next.config.ts"
+(
+    cd "$vercel_project"
+    pnpm install --frozen-lockfile
+    pnpm check
+    pnpm typecheck
+    pnpm test
+    pnpm build
+)
+test -d "$vercel_project/.next"
