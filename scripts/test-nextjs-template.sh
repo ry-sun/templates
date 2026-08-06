@@ -4,11 +4,34 @@ set -eu
 
 repository_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 test_root=$(mktemp -d)
+fake_bin="$test_root/fake-bin"
+fake_gh_log="$test_root/gh.log"
 
 cleanup() {
     rm -rf -- "$test_root"
 }
 trap cleanup EXIT HUP INT TERM
+
+mkdir -p "$fake_bin"
+
+cat >"$fake_bin/gh" <<'EOF'
+#!/bin/sh
+
+set -eu
+
+printf '%s\n' "$*" >>"$FAKE_GH_LOG"
+
+case "$*" in
+    "auth status" | "repo create "*)
+        exit 0
+        ;;
+    *)
+        printf 'unexpected gh invocation: %s\n' "$*" >&2
+        exit 2
+        ;;
+esac
+EOF
+chmod +x "$fake_bin/gh"
 
 test -f "$repository_root/nextjs/cookiecutter.json"
 test -f "$repository_root/nextjs/hooks/pre_gen_project.py"
@@ -49,11 +72,6 @@ uvx cookiecutter "$repository_root/nextjs" \
     --output-dir "$core_output" \
     project_name="Example Frontend" \
     project_slug="example-frontend" \
-    include_cspell=false \
-    include_pre_commit=false \
-    include_github_actions=false \
-    include_dependabot=false \
-    init_git=false \
     github_repository=none
 core_project="$core_output/example-frontend"
 
@@ -65,6 +83,16 @@ test -f "$core_project/src/app/page.test.tsx"
 test -f "$core_project/vitest.config.mts"
 test -f "$core_project/components.json"
 test -f "$core_project/src/lib/utils.ts"
+test -f "$core_project/.editorconfig"
+test -f "$core_project/.gitattributes"
+test -f "$core_project/.gitignore"
+test -f "$core_project/.cspell.json"
+test -f "$core_project/.cspell.ignore-words.txt"
+test -f "$core_project/.pre-commit-config.yaml"
+test -f "$core_project/.github/workflows/check.yml"
+test -f "$core_project/.github/dependabot.yml"
+test -f "$core_project/LICENSE-MIT"
+test -f "$core_project/LICENSE-APACHE"
 test ! -d "$core_project/src/components/ui"
 test ! -d "$core_project/src/app/themes"
 test ! -e "$core_project/vercel.json"
@@ -128,21 +156,26 @@ PY
     pnpm build
 )
 test -f "$zinc_project/out/index.html"
+test ! -e "$zinc_project/.cspell.json"
+test ! -e "$zinc_project/.cspell.ignore-words.txt"
+test ! -e "$zinc_project/.pre-commit-config.yaml"
+test ! -e "$zinc_project/.github"
+test -f "$zinc_project/LICENSE-MIT"
+test -f "$zinc_project/LICENSE-APACHE"
+test ! -e "$zinc_project/.git"
 
 vercel_output="$test_root/vercel"
+FAKE_GH_LOG="$fake_gh_log" PATH="$fake_bin:$PATH" \
 uvx cookiecutter "$repository_root/nextjs" \
     --no-input \
     --accept-hooks yes \
     --output-dir "$vercel_output" \
-    project_slug="vercel-frontend" \
+    project_name="Published Next.js App" \
+    project_slug="published-nextjs-app" \
     deployment_target=vercel \
-    include_cspell=false \
-    include_pre_commit=false \
-    include_github_actions=false \
-    include_dependabot=false \
-    init_git=false \
-    github_repository=none
-vercel_project="$vercel_output/vercel-frontend"
+    init_git=true \
+    github_repository=private
+vercel_project="$vercel_output/published-nextjs-app"
 
 test -f "$vercel_project/vercel.json"
 python3 -m json.tool "$vercel_project/vercel.json" >/dev/null
@@ -157,3 +190,33 @@ python3 -m json.tool "$vercel_project/vercel.json" >/dev/null
     pnpm build
 )
 test -d "$vercel_project/.next"
+
+for project in "$core_project" "$vercel_project"; do
+    test -d "$project/.git"
+    test "$(git -C "$project" branch --show-current)" = "main"
+    test "$(git -C "$project" rev-list --count HEAD)" -eq 1
+    test "$(git -C "$project" log -1 --format=%s)" = "Initial commit"
+    test "$(git -C "$project" log -1 --format=%ae)" = "ruiyangsun02@gmail.com"
+    test -z "$(git -C "$project" status --porcelain)"
+done
+
+grep -Fxq "auth status" "$fake_gh_log"
+grep -Fxq \
+    "repo create ry-sun/published-nextjs-app --private --source=. --remote=origin --push" \
+    "$fake_gh_log"
+
+python3 -m json.tool "$core_project/.cspell.json" >/dev/null
+uvx pre-commit validate-config "$core_project/.pre-commit-config.yaml"
+uv run --with pyyaml python - \
+    "$core_project/.pre-commit-config.yaml" \
+    "$core_project/.github/workflows/check.yml" \
+    "$core_project/.github/dependabot.yml" <<'PY'
+import sys
+from pathlib import Path
+
+import yaml
+
+for path in sys.argv[1:]:
+    with Path(path).open(encoding="utf-8") as stream:
+        assert isinstance(yaml.safe_load(stream), dict)
+PY

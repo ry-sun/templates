@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    assignees:
+      - "{{ cookiecutter.github_username }}"
+    reviewers:
+      - "{{ cookiecutter.github_username }}"
+    schedule:
+      interval: weekly
+      day: monday
+
+  - package-ecosystem: github-actions
+    directory: /
+    assignees:
+      - "{{ cookiecutter.github_username }}"
+    reviewers:
+      - "{{ cookiecutter.github_username }}"
+    schedule:
+      interval: weekly
+      day: monday
