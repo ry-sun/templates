@@ -33,6 +33,14 @@ esac
 EOF
 chmod +x "$fake_bin/gh"
 
+run_pnpm() {
+    if command -v pnpm >/dev/null 2>&1; then
+        pnpm "$@"
+    else
+        corepack pnpm "$@"
+    fi
+}
+
 test -f "$repository_root/nextjs/cookiecutter.json"
 test -f "$repository_root/nextjs/hooks/pre_gen_project.py"
 python3 -m json.tool "$repository_root/nextjs/cookiecutter.json" >/dev/null
@@ -115,11 +123,11 @@ grep -Fq 'oklch(0.145 0 0)' "$core_project/src/app/globals.css"
 
 (
     cd "$core_project"
-    pnpm install --frozen-lockfile
-    pnpm check
-    pnpm typecheck
-    pnpm test
-    pnpm build
+    run_pnpm install --frozen-lockfile
+    run_pnpm check
+    run_pnpm typecheck
+    run_pnpm test
+    run_pnpm build
 )
 test -d "$core_project/.next"
 
@@ -163,11 +171,11 @@ PY
 
 (
     cd "$zinc_project"
-    pnpm install --frozen-lockfile
-    pnpm check
-    pnpm typecheck
-    pnpm test
-    pnpm build
+    run_pnpm install --frozen-lockfile
+    run_pnpm check
+    run_pnpm typecheck
+    run_pnpm test
+    run_pnpm build
 )
 test -f "$zinc_project/out/index.html"
 test ! -e "$zinc_project/.cspell.json"
@@ -197,11 +205,11 @@ python3 -m json.tool "$vercel_project/vercel.json" >/dev/null
 ! grep -Fq 'output: "export"' "$vercel_project/next.config.ts"
 (
     cd "$vercel_project"
-    pnpm install --frozen-lockfile
-    pnpm check
-    pnpm typecheck
-    pnpm test
-    pnpm build
+    run_pnpm install --frozen-lockfile
+    run_pnpm check
+    run_pnpm typecheck
+    run_pnpm test
+    run_pnpm build
 )
 test -d "$vercel_project/.next"
 test ! -e "$core_project/out"

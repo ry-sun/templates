@@ -7,10 +7,17 @@ React Testing Library, and configuration-only shadcn/ui.
 ## Prerequisites
 
 - Node.js 24 or newer
-- pnpm
+- pnpm, either as a direct command or through Corepack
 - Cookiecutter, invoked through `uvx` in the examples below
 - Git when repository initialization is enabled
 - An authenticated GitHub CLI when GitHub publishing is selected
+
+If Node.js provides Corepack but the `pnpm` command is not enabled, generation
+uses `corepack pnpm` automatically. Enable the shorter command afterward with:
+
+```sh
+corepack enable pnpm
+```
 
 ## Generate
 

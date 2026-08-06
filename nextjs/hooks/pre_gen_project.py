@@ -59,9 +59,11 @@ if GITHUB_REPOSITORY not in GITHUB_REPOSITORIES:
 if PUSH_TO_GITHUB and not INIT_GIT:
     fail("GitHub publishing requires init_git to be enabled.")
 
-for command in ("node", "pnpm"):
-    if shutil.which(command) is None:
-        fail(f"Generation requires the {command} command to be installed.")
+if shutil.which("node") is None:
+    fail("Generation requires the node command to be installed.")
+
+if shutil.which("pnpm") is None and shutil.which("corepack") is None:
+    fail("Generation requires pnpm or Corepack to be installed.")
 
 if node_major() < 24:
     fail("Generation requires Node.js 24 or newer.")

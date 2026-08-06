@@ -24,6 +24,10 @@ GITHUB_USERNAME = {{ cookiecutter.github_username | tojson }}
 PROJECT_SLUG = {{ cookiecutter.project_slug | tojson }}
 AUTHOR_NAME = {{ cookiecutter.author_name | tojson }}
 AUTHOR_EMAIL = {{ cookiecutter.author_email | tojson }}
+if shutil.which("pnpm") is not None:
+    PNPM_COMMAND = ["pnpm"]
+else:
+    PNPM_COMMAND = ["corepack", "pnpm"]
 
 
 def run_command(command: list[str], *, env: dict[str, str] | None = None) -> None:
@@ -33,12 +37,12 @@ def run_command(command: list[str], *, env: dict[str, str] | None = None) -> Non
 
 def install_dependencies() -> None:
     """Install dependencies and create the generated pnpm lockfile."""
-    run_command(["pnpm", "install"])
+    run_command([*PNPM_COMMAND, "install"])
 
 
 def generate_types() -> None:
     """Generate Next.js declarations and route types."""
-    run_command(["pnpm", "next", "typegen"])
+    run_command([*PNPM_COMMAND, "next", "typegen"])
 
 
 def select_theme() -> None:

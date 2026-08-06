@@ -11,6 +11,9 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
+If `pnpm` is not enabled as a direct command, run `corepack enable pnpm` or
+prefix these commands with `corepack` (for example, `corepack pnpm dev`).
+
 Run the project checks with:
 
 ```sh
