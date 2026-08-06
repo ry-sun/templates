@@ -1,0 +1,13 @@
+biome
+clsx
+cookiecutter
+jsdom
+nextjs
+oklch
+pnpm
+shadcn
+tailwind
+tsconfig
+turbopack
+vercel
+vitest

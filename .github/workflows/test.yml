@@ -10,6 +10,28 @@ permissions:
   contents: read
 
 jobs:
+  nextjs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.20.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Test Next.js template
+        run: ./scripts/test-nextjs-template.sh
+
   python:
     runs-on: ubuntu-latest
     steps:

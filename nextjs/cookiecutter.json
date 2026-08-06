@@ -1,0 +1,48 @@
+{
+  "project_name": "My Next.js App",
+  "project_slug": "{{ cookiecutter.project_name | lower | replace('.', '') | replace(' ', '-') | replace('_', '-') }}",
+  "description": "A Next.js frontend application.",
+  "author_name": "Ryan Sun",
+  "author_email": "ruiyangsun02@gmail.com",
+  "github_username": "ry-sun",
+  "license": ["MIT OR Apache-2.0", "MIT", "Apache-2.0", "None"],
+  "copyright_year": "2026",
+  "enable_react_compiler": false,
+  "shadcn_base_color": ["neutral", "zinc", "stone", "mauve", "olive", "mist", "taupe"],
+  "deployment_target": ["node", "static", "vercel"],
+  "include_cspell": true,
+  "include_pre_commit": true,
+  "include_github_actions": true,
+  "include_dependabot": true,
+  "init_git": true,
+  "github_repository": ["none", "private", "public"],
+  "__prompts__": {
+    "project_name": "Human-readable project name",
+    "project_slug": "Repository and package name",
+    "description": "Short project description",
+    "author_name": "Author name",
+    "author_email": "Author email",
+    "github_username": "GitHub username or organization",
+    "license": "Project license",
+    "copyright_year": "Copyright year",
+    "enable_react_compiler": "Enable React Compiler",
+    "shadcn_base_color": "shadcn/ui base color",
+    "deployment_target": {
+      "__prompt__": "Deployment target",
+      "node": "Provider-neutral Node.js server",
+      "static": "Static export",
+      "vercel": "Vercel"
+    },
+    "include_cspell": "Include CSpell configuration",
+    "include_pre_commit": "Include pre-commit configuration",
+    "include_github_actions": "Include a GitHub Actions check workflow",
+    "include_dependabot": "Include Dependabot configuration",
+    "init_git": "Initialize Git and create an initial commit",
+    "github_repository": {
+      "__prompt__": "Publish generated project to GitHub",
+      "none": "Do not publish",
+      "private": "Create a private repository",
+      "public": "Create a public repository"
+    }
+  }
+}

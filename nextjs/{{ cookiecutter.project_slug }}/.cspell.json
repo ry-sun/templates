@@ -1,0 +1,34 @@
+{
+  "allowCompoundWords": true,
+  "cache": {
+    "useCache": true
+  },
+  "caseSensitive": true,
+  "dictionaries": ["en-US", "ignore-words"],
+  "dictionaryDefinitions": [
+    {
+      "addWords": true,
+      "description": "Project-specific terms",
+      "name": "ignore-words",
+      "path": ".cspell.ignore-words.txt"
+    }
+  ],
+  "ignorePaths": [
+    ".git/",
+    ".next/",
+    "coverage/",
+    "node_modules/",
+    "out/",
+    "pnpm-lock.yaml",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "language": "en",
+  "languageSettings": [
+    {
+      "languageId": "typescript,typescriptreact,css,json,jsonc,yaml,markdown",
+      "locale": "en"
+    }
+  ],
+  "useGitignore": true
+}
