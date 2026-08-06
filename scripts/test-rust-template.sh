@@ -250,10 +250,29 @@ expected_nightly.update(
         "style_edition": "2024",
         "max_width": 100,
         "newline_style": "Unix",
+        "wrap_comments": True,
+        "format_code_in_doc_comments": True,
+        "normalize_comments": True,
+        "normalize_doc_attributes": True,
+        "format_strings": True,
+        "format_macro_matchers": True,
+        "hex_literal_case": "Lower",
+        "float_literal_trailing_zero": "Always",
+        "imports_layout": "HorizontalVertical",
+        "imports_granularity": "Module",
+        "group_imports": "StdExternalCrate",
+        "reorder_impl_items": True,
+        "spaces_around_ranges": True,
+        "overflow_delimited_expr": True,
+        "match_block_trailing_comma": True,
         "use_field_init_shorthand": True,
         "use_try_shorthand": True,
+        "condense_wildcard_suffixes": True,
+        "required_version": ">=1.10.0",
+        "unstable_features": True,
     }
 )
+expected_nightly.pop("version")
 assert nightly_config == expected_nightly
 PY
 
