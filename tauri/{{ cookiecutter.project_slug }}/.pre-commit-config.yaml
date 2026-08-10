@@ -1,0 +1,94 @@
+default_install_hook_types:
+  - pre-commit
+  - pre-push
+default_language_version:
+  node: system
+default_stages:
+  - pre-commit
+  - pre-push
+fail_fast: false
+minimum_pre_commit_version: "4.0.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-illegal-windows-names
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: check-yaml
+        args: ["--allow-multiple-documents"]
+      - id: destroyed-symlinks
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: file-contents-sorter
+        files: "^\\.cspell\\.ignore-words\\.txt$"
+        args: ["--unique"]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: trailing-whitespace
+
+{% if cookiecutter.include_cspell %}
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v10.0.1
+    hooks:
+      - id: cspell
+{% endif %}
+
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.5.7
+    hooks:
+      - id: biome-ci
+        stages: [pre-commit]
+      - id: biome-check
+        stages: [pre-commit]
+      - id: biome-format
+        stages: [pre-commit]
+      - id: biome-lint
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: typecheck
+        name: typecheck
+        entry: pnpm typecheck
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: frontend-test
+        name: frontend-test
+        entry: pnpm test
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: cargo-fmt
+        name: cargo-fmt
+        entry: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: cargo-clippy
+        name: cargo-clippy
+        entry: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --all-features -- -D warnings
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: cargo-test
+        name: cargo-test
+        entry: cargo test --manifest-path src-tauri/Cargo.toml --all-features
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+ci:
+  autofix_prs: true
+  autoupdate_schedule: weekly
+  submodules: false
